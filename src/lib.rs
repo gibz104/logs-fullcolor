@@ -153,38 +153,34 @@ impl Log for Logs {
             let datetime = OffsetDateTime::now_utc()
                 .format(&TIMESTAMP_FORMAT_OFFSET)
                 .unwrap();
-            let level = level_to_str(record.level());
 
-            if self.color {
-                let (color_start, color_end) = level_color_strs(record.level());
-                println!("{}{} [{}] {}{}", color_start, datetime, level, record.args(), color_end);
-            }
-            else {
-                println!("{} [{}] {}", datetime, level, record.args());
-            }
+            let (color, level) = level_to_str(record.level(), self.color);
+            let reset_char = "\x1B[0m";
+
+            println!("{}{} [{}] {}{}", color, datetime, level, record.args(), reset_char);
         }
     }
 
     fn flush(&self) {}
 }
 
-fn level_to_str(level: Level) -> &'static str {
-    match level {
-        Level::Error => "ERROR",
-        Level::Warn => "WARN",
-        Level::Info => "INFO",
-        Level::Debug => "DEBUG",
-        Level::Trace => "TRACE",
-    }
-}
-
-fn level_color_strs(level: Level) -> (&'static str, &'static str) {
-    match level {
-        Level::Error => ("\x1B[31m", "\x1B[0m"),
-        Level::Warn => ("\x1B[33m", "\x1B[0m"),
-        Level::Info => ("\x1B[32m", "\x1B[0m"),
-        Level::Debug => ("\x1B[3;34m", "\x1B[0m"),
-        Level::Trace => ("\x1B[2;3m", "\x1B[0m"),
+fn level_to_str(level: Level, color: bool) -> (&'static str, &'static str) {
+    if color {
+        match level {
+            Level::Error => ("\x1B[31m", "ERROR"),
+            Level::Warn => ("\x1B[33m", "WARN"),
+            Level::Info => ("\x1B[32m", "INFO"),
+            Level::Debug => ("\x1B[3;34m", "DEBUG"),
+            Level::Trace => ("\x1B[2;3m", "TRACE"),
+        }
+    } else {
+        match level {
+            Level::Error => ("", "ERROR"),
+            Level::Warn => ("", "WARN"),
+            Level::Info => ("", "INFO"),
+            Level::Debug => ("", "DEBUG"),
+            Level::Trace => ("", "TRACE"),
+        }
     }
 }
 
