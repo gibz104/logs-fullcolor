@@ -153,31 +153,38 @@ impl Log for Logs {
             let datetime = OffsetDateTime::now_utc()
                 .format(&TIMESTAMP_FORMAT_OFFSET)
                 .unwrap();
-            let level = level_to_str(record.level(), self.color);
+            let level = level_to_str(record.level());
 
-            println!("{} [{}] {}", datetime, level, record.args());
+            if self.color {
+                let (color_start, color_end) = level_color_strs(record.level());
+                println!("{}{} [{}] {}{}", color_start, datetime, level, record.args(), color_end);
+            }
+            else {
+                println!("{} [{}] {}", datetime, level, record.args());
+            }
         }
     }
 
     fn flush(&self) {}
 }
 
-fn level_to_str(level: Level, color: bool) -> &'static str {
-    if color {
-        match level {
-            Level::Error => "\x1B[31mERROR\x1B[0m",
-            Level::Warn => "\x1B[33mWARN \x1B[0m",
-            Level::Info => "\x1B[32mINFO \x1B[0m",
-            Level::Debug => "\x1B[3;34mDEBUG\x1B[0m",
-            Level::Trace => "\x1B[2;3mTRACE\x1B[0m",
-        }
-    } else {
-        match level {
-            Level::Error => "ERROR",
-            Level::Warn => "WARN ",
-            Level::Info => "INFO ",
-            Level::Debug => "DEBUG",
-            Level::Trace => "TRACE",
-        }
+fn level_to_str(level: Level) -> &'static str {
+    match level {
+        Level::Error => "ERROR",
+        Level::Warn => "WARN",
+        Level::Info => "INFO",
+        Level::Debug => "DEBUG",
+        Level::Trace => "TRACE",
     }
 }
+
+fn level_color_strs(level: Level) -> (&'static str, &'static str) {
+    match level {
+        Level::Error => ("\x1B[31m", "\x1B[0m"),
+        Level::Warn => ("\x1B[33m", "\x1B[0m"),
+        Level::Info => ("\x1B[32m", "\x1B[0m"),
+        Level::Debug => ("\x1B[3;34m", "\x1B[0m"),
+        Level::Trace => ("\x1B[2;3m", "\x1B[0m"),
+    }
+}
+
